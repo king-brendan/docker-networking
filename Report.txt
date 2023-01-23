@@ -1,0 +1,33 @@
+Brendan King
+
+---- REPORT ----
+
+This algorithm works by repeatedly sending out messages to each of the other hosts, while simultaneously
+listening for messages from those same hosts. An internal data structure keeps track of which hosts have
+been heard from. Once all hosts have been heard from, the listener loop terminates and prints 'READY' to
+stderr. Messages keep being sent out to the other hosts even after the listener loop has terminated.
+
+
+-- ALGORITHM --
+
+Main thread (entrypoint):
+    1. Open and read each hostname line by line from hostfile.txt.
+    2. For each hostname, create a "sender" thread, which executes in parallel to the main thread. Also,
+       add the hostname to the `hostnames` array of strings (char**) in memory.
+    3. Get the addrinfo for this process, and create an unassociated socket to listen for messages on.
+       Bind this socket to the default port number (in this case, 3000).
+    4. Repeatedly listen for messages on the created socket. For every message received from other hosts,
+       the content of the message should be the sender's name.
+        a. If the message sender's name is present in the `hostnames` array, remove it from the array to 
+           signify that that host has been heard from.
+        b. If the message sender's name is not present in the array, do nothing and continue listening.
+    5. Once the `hostnames` array is empty, it can be assumed that every other host has been heard from.
+       End the listener loop once this occurs.
+    6. Free the allocated memory in the main thread and join with the sender threads so that they
+       continue executing.
+
+Sender threads:
+    1. Get the addrinfo for the hostname that this sender thread was started for. Create a socket for this
+       hostname.
+    2. Repeatedly send messages to the target hostname, with the message content being the name of the current
+       process.
